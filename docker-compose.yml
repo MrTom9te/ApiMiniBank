@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    container_name: minibank_app
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/minibank
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    container_name: minibank_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: minibank
+    ports:
+      - "5432:5432"
