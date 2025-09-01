@@ -28,6 +28,7 @@ impl UserRepository {
 
         Ok(user.id)
     }
+
     /// Busca usuário por ID
     pub async fn find_by_id(pool: PgPool, user_id: Uuid) -> Result<Option<User>, sqlx::Error> {
         let maybe_row = sqlx::query("SELECT id, name, password_hash,is_active,created_at,updated_at FROM users WHERE id  = $1 AND is_active = true")
@@ -45,5 +46,84 @@ impl UserRepository {
             })),
             None => Ok(None),
         }
+    }
+
+    /// Busca usuário por email (útil para login)
+    pub async fn find_by_email(pool: PgPool, email: &str) -> Result<Option<User>, sqlx::Error> {
+        let maybe_row =
+            sqlx::query("SELECT id, name, email, password_hash FROM users WHERE email = $1")
+                .bind(email.to_lowercase())
+                .fetch_optional(&pool)
+                .await?;
+
+        match maybe_row {
+            Some(row) => {
+                let user = User {
+                    id: row.get("id"),
+                    email: row.get("email"),
+                    name: row.get("name"),
+                    created_at: row.get("index"),
+                    is_active: row.get("is_active"),
+                    password_hash: row.get("password_hash"),
+                    updated_at: row.get("updated_at"),
+                };
+                Ok(Some(user))
+            }
+            None => Ok(None),
+        }
+    }
+
+    /// Lista usuários com paginação
+    pub async fn find_all(pool: PgPool, limit: i8, offset: i64) -> Result<Vec<User>, sqlx::Error> {
+        let rows = sqlx::query(
+            "SELECT id, name, email, password_hash FROM users ORDER BY name LIMIT $1 OFFSET $2",
+        )
+        .bind(limit)
+        .bind(offset)
+        .fetch_all(&pool)
+        .await?;
+
+        let mut users = Vec::new();
+
+        for row in rows {
+            let user = User {
+                id: row.get("id"),
+                name: row.get("name"),
+                email: row.get("email"),
+                password_hash: row.get("password_hash"),
+                created_at: row.get("created_at"),
+                updated_at: row.get("updated_at"),
+                is_active: row.get("is_active"),
+            };
+            users.push(user);
+        }
+
+        Ok(users)
+    }
+
+    /// Atualiza dados do usuário
+    pub async fn update(pool: PgPool, user: User) -> Result<(), sqlx::Error> {
+        sqlx::query(
+            "UPDATE users
+                   SET name = $1, email = $2, password_hash = $3, updated_at = $4
+                   WHERE id = $5",
+        )
+        .bind(&user.name)
+        .bind(&user.email)
+        .bind(user.password_hash)
+        .bind(&user.updated_at)
+        .bind(user.id)
+        .execute(&pool)
+        .await?;
+        Ok(())
+    }
+
+    /// Soft delete (marca como inativo)
+    pub async fn delete(pool: PgPool, user_id: Uuid) -> Result<(), sqlx::Error> {
+        sqlx::query("UPDATE users SET is_active = false, updated_at = NOW() WHERE id = $1")
+            .bind(&user_id)
+            .execute(&pool)
+            .await?;
+        Ok(())
     }
 }
