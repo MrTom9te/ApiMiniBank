@@ -71,3 +71,6 @@ temp/
 
 # Documentation build
 /docs/build/
+/target
+.shuttle*
+Secrets*.toml
