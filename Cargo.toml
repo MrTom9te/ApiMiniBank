@@ -4,11 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+actix-files = "0.6.7"
 actix-web = "4.11.0"
 bcrypt = "0.17.1"
 chrono = { version = "0.4.41", features = ["serde"] }
 rust_decimal = "1.37.2"
 serde = { version = "1.0.219", features = ["derive"] }
+shuttle-actix-web = "0.56.0"
+shuttle-runtime = "0.56.0"
+shuttle-shared-db = { version = "0.56.0", features = ["postgres", "sqlx"] }
 sqlx = { version = "0.8.6", features = [
     "postgres",
     "runtime-tokio",
@@ -16,4 +20,5 @@ sqlx = { version = "0.8.6", features = [
     "chrono",
 ] }
 thiserror = "2.0.16"
+tokio = { version = "1.47.1", features = ["full"] }
 uuid = { version = "1.18.0", features = ["serde", "v4"] }
