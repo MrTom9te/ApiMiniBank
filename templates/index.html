@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Bank - Educational Banking API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #1f2937;
+            overflow-x: hidden;
+        }
+
+        /* Gradient animations */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .hero {
+            min-height: 100vh;
+            background: linear-gradient(-45deg, #059669, #10b981, #34d399, #6ee7b7);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .shape {
+            position: absolute;
+            opacity: 0.1;
+            animation: float 20s infinite linear;
+        }
+
+        .shape:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            top: 70%;
+            left: 80%;
+            width: 120px;
+            height: 120px;
+            background: white;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            animation-delay: -5s;
+        }
+
+        .shape:nth-child(3) {
+            top: 30%;
+            right: 15%;
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 20%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            25% { transform: translateY(-20px) rotate(90deg); }
+            50% { transform: translateY(0) rotate(180deg); }
+            75% { transform: translateY(20px) rotate(270deg); }
+        }
+
+        .hero-content {
+            text-align: center;
+            color: white;
+            max-width: 800px;
+            padding: 0 20px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: slideInDown 1s ease-out;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            margin-bottom: 2rem;
+            opacity: 0.95;
+            animation: slideInUp 1s ease-out 0.3s both;
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 0.95;
+                transform: translateY(0);
+            }
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #059669;
+            padding: 18px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            animation: slideInUp 1s ease-out 0.6s both;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .warning-banner {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            padding: 20px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #92400e;
+            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .features {
+            padding: 100px 20px;
+            background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 3rem;
+            color: #059669;
+            margin-bottom: 3rem;
+            font-weight: 800;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 60px rgba(5, 150, 105, 0.15);
+            border-color: #34d399;
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #059669, #34d399);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            color: #1f2937;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: #6b7280;
+            line-height: 1.7;
+        }
+
+        .tech-section {
+            background: linear-gradient(135deg, #1f2937, #374151);
+            color: white;
+            padding: 100px 20px;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .tech-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+        }
+
+        .tech-item h4 {
+            color: #34d399;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .download-section {
+            padding: 100px 20px;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            text-align: center;
+        }
+
+        .download-button {
+            display: inline-block;
+            background: white;
+            color: #059669;
+            padding: 20px 50px;
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-decoration: none;
+            border-radius: 60px;
+            margin: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .download-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer {
+            background: #1f2937;
+            color: #9ca3af;
+            padding: 50px 20px;
+            text-align: center;
+        }
+
+        .footer p {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .section-title {
+                font-size: 2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Warning Banner -->
+    <div class="warning-banner">
+        ⚠️ PROJETO EDUCACIONAL - NÃO É UM BANCO REAL - APENAS PARA FINS DE APRENDIZADO ⚠️
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+        <div class="hero-content">
+            <h1>🏦 Mini Bank</h1>
+            <p class="hero-subtitle">The most complete educational banking API<br>Complete system for transactions, accounts and authentication</p>
+            <a href="#download" class="cta-button">Explorar API</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">Recursos Principais</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Autenticação Segura</h3>
+                    <p>Sistema completo de registro, login e autenticação JWT com hash bcrypt para máxima segurança das senhas.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💳</div>
+                    <h3>Múltiplas Contas</h3>
+                    <p>Criação e gestão de contas corrente, poupança e investimento com números únicos gerados automaticamente.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💰</div>
+                    <h3>Transações Completas</h3>
+                    <p>Depósitos, saques e transferências com validações rigorosas e operações atômicas para integridade dos dados.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Histórico & Extratos</h3>
+                    <p>Consulta completa do histórico de transações com filtros por período, tipo e valor, incluindo paginação.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Alta Performance</h3>
+                    <p>API otimizada com Rust e PostgreSQL, respondendo em menos de 200ms para 95% das requisições.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>Segurança Avançada</h3>
+                    <p>Rate limiting, logs de auditoria, HTTPS obrigatório e validação rigorosa de todas as entradas.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tech Section -->
+    <section class="tech-section">
+        <div class="container">
+            <h2 class="section-title">Tecnologias Utilizadas</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <h4>🦀 Rust</h4>
+                    <p>Performance e segurança com Actix Web framework</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🐘 PostgreSQL</h4>
+                    <p>Banco robusto com índices otimizados</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🔑 JWT</h4>
+                    <p>Tokens seguros com expiração de 24h</p>
+                </div>
+                <div class="tech-item">
+                    <h4>🐳 Docker</h4>
+                    <p>Containerização completa para deploy</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section id="download" class="download-section">
+        <div class="container">
+            <h2 class="section-title">Acesse a API</h2>
+            <p style="font-size: 1.3rem; margin-bottom: 40px; opacity: 0.9;">
+                Explore todos os endpoints da nossa API bancária educacional
+            </p>
+            <a href="#" class="download-button">📱 Baixar Documentação</a>
+            <a href="#" class="download-button">🚀 Testar API</a>
+            <div style="margin-top: 40px; padding: 30px; background: rgba(255,255,255,0.1); border-radius: 15px; backdrop-filter: blur(10px);">
+                <h3 style="color: #fbbf24; font-size: 1.5rem; margin-bottom: 15px;">⚠️ IMPORTANTE</h3>
+                <p style="font-size: 1.1rem; line-height: 1.6;">
+                    Esta é uma API desenvolvida exclusivamente para fins educacionais e demonstração de habilidades técnicas.<br>
+                    <strong>NÃO utilize dados reais ou informações sensíveis!</strong><br>
+                    Todos os dados são fictícios e o sistema não possui valor monetário real.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 Mini Bank API - Educational Project</p>
+            <p>Developed with 💚 in Rust | Not a real bank</p>
+            <p>For learning and technical demonstration purposes only</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all feature cards and tech items
+        document.querySelectorAll('.feature-card, .tech-item').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
