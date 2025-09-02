@@ -1,0 +1,7 @@
+max_width = 100        # largura máxima da linha
+hard_tabs = false      # usa espaços em vez de tab
+tab_spaces = 4         # tamanho da indentação
+reorder_imports = true # organiza automaticamente
+newline_style = "Unix" # força LF (\n) em vez de CRLF (\r\n)
+chain_width = 60
+fn_call_width = 60
