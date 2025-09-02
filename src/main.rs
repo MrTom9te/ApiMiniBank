@@ -22,7 +22,7 @@ async fn main(
                 .wrap(Logger::default())
                 .app_data(web::Data::new(pool.clone()))
                 .configure(app)
-                .service(fs::Files::new("/static", "templates").index_file("index.html")),
+                .service(fs::Files::new("/", "templates").index_file("index.html")),
         );
     };
 
