@@ -3,6 +3,7 @@ use actix_web::{
     middleware::Logger,
     web::{self, ServiceConfig},
 };
+use api_mini_bank::app;
 use shuttle_actix_web::ShuttleActixWeb;
 use sqlx::PgPool;
 
@@ -17,9 +18,11 @@ async fn main(
 
     let config = move |cfg: &mut ServiceConfig| {
         cfg.service(
-            web::scope("/")
+            web::scope("")
                 .wrap(Logger::default())
-                .service(fs::Files::new("", "templates").index_file("index.html")),
+                .app_data(web::Data::new(pool.clone()))
+                .configure(app)
+                .service(fs::Files::new("/static", "templates").index_file("index.html")),
         );
     };
 
