@@ -9,11 +9,11 @@ pub struct UserRepository;
 impl UserRepository {
     /// Insere um novo usuário no banco de dados
     /// Retorna o ID do usuário criado ou erro se email já existir
-    pub async fn insert(pool: PgPool, user: User) -> Result<Uuid, UserError> {
+    pub async fn insert(pool: &PgPool, user: User) -> Result<Uuid, UserError> {
         let email_exists: PgRow =
             sqlx::query("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
                 .bind(&user.email)
-                .fetch_one(&pool)
+                .fetch_one(pool)
                 .await?;
 
         let email_exists: bool = email_exists.get(0);
@@ -22,9 +22,19 @@ impl UserRepository {
             return Err(UserError::EmailAlreadyExists);
         }
 
-        sqlx::query(
-            "INSERT INTO users (id, email, name, password_hash, is_active, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7)",
-        ).bind(user.id).bind(&user.email).bind(&user.name).bind(&user.password_hash).bind(user.is_active).bind(user.created_at).bind(user.updated_at).execute(&pool).await?;
+        let _ = sqlx::query(
+            "INSERT INTO users (id, email, name, password_hash, is_active, created_at, updated_at)\
+            VALUES ($1, $2, $3, $4, $5, $6, $7)",
+        )
+        .bind(user.id)
+        .bind(&user.email)
+        .bind(&user.name)
+        .bind(&user.password_hash)
+        .bind(user.is_active)
+        .bind(user.created_at)
+        .bind(user.updated_at)
+        .execute(pool)
+        .await?;
 
         Ok(user.id)
     }
@@ -75,6 +85,8 @@ impl UserRepository {
 
     /// Lista usuários com paginação
     pub async fn find_all(pool: PgPool, limit: i8, offset: i64) -> Result<Vec<User>, sqlx::Error> {
+        let limit = if limit <= 0 { 1 } else { limit };
+        let offset = if offset <= 0 { 1 } else { offset };
         let rows = sqlx::query(
             "SELECT id, name, email, password_hash FROM users ORDER BY name LIMIT $1 OFFSET $2",
         )
@@ -125,5 +137,25 @@ impl UserRepository {
             .execute(&pool)
             .await?;
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use serde::de::IntoDeserializer;
+
+    use crate::models::{CreateUser, User};
+
+    #[test]
+    fn test_create_user() {
+        let create_user = CreateUser {
+            email: "fodase@gmail".into(),
+            name: "fulano ciclano".into(),
+            password: "Senha123456".into(),
+        };
+
+        let user = User::try_from(create_user);
+        
+        
     }
 }
