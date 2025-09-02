@@ -3,25 +3,6 @@
 version = 4
 
 [[package]]
-name = "ApiMiniBank"
-version = "0.1.0"
-dependencies = [
- "actix-files",
- "actix-web",
- "bcrypt",
- "chrono",
- "rust_decimal",
- "serde",
- "shuttle-actix-web",
- "shuttle-runtime",
- "shuttle-shared-db",
- "sqlx",
- "thiserror 2.0.16",
- "tokio",
- "uuid",
-]
-
-[[package]]
 name = "actix-codec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -303,6 +284,25 @@ name = "anyhow"
 version = "1.0.99"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0674a1ddeecb70197781e945de4b3b8ffb61fa939a5597bcf48503737663100"
+
+[[package]]
+name = "api_mini_bank"
+version = "0.1.0"
+dependencies = [
+ "actix-files",
+ "actix-web",
+ "bcrypt",
+ "chrono",
+ "rust_decimal",
+ "serde",
+ "shuttle-actix-web",
+ "shuttle-runtime",
+ "shuttle-shared-db",
+ "sqlx",
+ "thiserror 2.0.16",
+ "tokio",
+ "uuid",
+]
 
 [[package]]
 name = "arrayvec"
