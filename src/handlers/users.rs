@@ -6,7 +6,7 @@ use sqlx::PgPool;
 
 use crate::{
     database::UserRepository,
-    models::{CreateUser, User, api_response::ApiResponse, error::UserError},
+    models::{CreateUser, User, api_response::ApiResponse},
 };
 
 #[post("/register")]
