@@ -3,7 +3,7 @@ use actix_web::{
     middleware::Logger,
     web::{self, ServiceConfig},
 };
-use api_mini_bank::{JWT_SECRET, Secret, app};
+use api_mini_bank::JWT_SECRET;
 use shuttle_actix_web::ShuttleActixWeb;
 use shuttle_runtime::SecretStore;
 use sqlx::PgPool;
