@@ -40,9 +40,9 @@ impl UserRepository {
     }
 
     /// Busca usuário por ID
-    pub async fn find_by_id(pool: PgPool, user_id: Uuid) -> Result<Option<User>, sqlx::Error> {
+    pub async fn find_by_id(pool: &PgPool, user_id: Uuid) -> Result<Option<User>, sqlx::Error> {
         let maybe_row = sqlx::query("SELECT id, name, password_hash,is_active,created_at,updated_at FROM users WHERE id  = $1 AND is_active = true")
-            .bind(user_id).fetch_optional(&pool).await?;
+            .bind(user_id).fetch_optional(pool).await?;
 
         match maybe_row {
             Some(row) => Ok(Some(User {
@@ -59,11 +59,11 @@ impl UserRepository {
     }
 
     /// Busca usuário por email (útil para login)
-    pub async fn find_by_email(pool: PgPool, email: &str) -> Result<Option<User>, sqlx::Error> {
+    pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<User>, sqlx::Error> {
         let maybe_row =
             sqlx::query("SELECT id, name, email, password_hash FROM users WHERE email = $1")
                 .bind(email.to_lowercase())
-                .fetch_optional(&pool)
+                .fetch_optional(pool)
                 .await?;
 
         match maybe_row {
@@ -84,7 +84,7 @@ impl UserRepository {
     }
 
     /// Lista usuários com paginação
-    pub async fn find_all(pool: PgPool, limit: i8, offset: i64) -> Result<Vec<User>, sqlx::Error> {
+    pub async fn find_all(pool: &PgPool, limit: i8, offset: i64) -> Result<Vec<User>, sqlx::Error> {
         let limit = if limit <= 0 { 1 } else { limit };
         let offset = if offset <= 0 { 1 } else { offset };
         let rows = sqlx::query(
@@ -92,7 +92,7 @@ impl UserRepository {
         )
         .bind(limit)
         .bind(offset)
-        .fetch_all(&pool)
+        .fetch_all(pool)
         .await?;
 
         let mut users = Vec::new();
@@ -114,7 +114,7 @@ impl UserRepository {
     }
 
     /// Atualiza dados do usuário
-    pub async fn update(pool: PgPool, user: User) -> Result<(), sqlx::Error> {
+    pub async fn update(pool: &PgPool, user: User) -> Result<(), sqlx::Error> {
         sqlx::query(
             "UPDATE users
                    SET name = $1, email = $2, password_hash = $3, updated_at = $4
@@ -125,16 +125,16 @@ impl UserRepository {
         .bind(user.password_hash)
         .bind(&user.updated_at)
         .bind(user.id)
-        .execute(&pool)
+        .execute(pool)
         .await?;
         Ok(())
     }
 
     /// Soft delete (marca como inativo)
-    pub async fn delete(pool: PgPool, user_id: Uuid) -> Result<(), sqlx::Error> {
+    pub async fn delete(pool: &PgPool, user_id: Uuid) -> Result<(), sqlx::Error> {
         sqlx::query("UPDATE users SET is_active = false, updated_at = NOW() WHERE id = $1")
             .bind(&user_id)
-            .execute(&pool)
+            .execute(pool)
             .await?;
         Ok(())
     }
@@ -155,7 +155,5 @@ mod test {
         };
 
         let user = User::try_from(create_user);
-        
-        
     }
 }
