@@ -294,6 +294,7 @@ dependencies = [
  "bcrypt",
  "chrono",
  "jsonwebtoken",
+ "regex",
  "rust_decimal",
  "serde",
  "shuttle-actix-web",
