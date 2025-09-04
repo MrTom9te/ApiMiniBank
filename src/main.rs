@@ -31,7 +31,6 @@ async fn main(
             web::scope("")
                 .wrap(Logger::default())
                 .app_data(web::Data::new(pool.clone()))
-                .app_data(web::Data::new(secret.clone()))
                 .configure(app)
                 .service(fs::Files::new("/", "templates").index_file("index.html")),
         );
