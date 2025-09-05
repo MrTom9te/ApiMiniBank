@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use actix_web::{
     HttpResponse, Responder, post,
     web::{self, Data, Json, ServiceConfig},
