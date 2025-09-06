@@ -1,8 +1,6 @@
-use std::sync::{OnceLock, mpsc::RecvTimeoutError};
-
-use actix_web::cookie::time::format_description::parse_strftime_owned;
 use regex::Regex;
 use serde::Serialize;
+use std::sync::OnceLock;
 
 use crate::models::error::UserError;
 
