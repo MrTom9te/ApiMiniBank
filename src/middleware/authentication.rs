@@ -1,6 +1,6 @@
 use actix_web::{HttpMessage, body::BoxBody, dev, error::ErrorUnauthorized, middleware::Next};
 
-use crate::{models::error::UserError, utils::verify_jwt};
+use crate::{models::error::UserError, utils::verify_token};
 
 pub async fn authentication(
     req: dev::ServiceRequest,
@@ -13,7 +13,7 @@ pub async fn authentication(
             if auth_str.starts_with("Bearer ") {
                 let token = &auth_str[7..];
 
-                match verify_jwt(token) {
+                match verify_token(token) {
                     Ok(token_data) => {
                         req.extensions_mut().insert(token_data.claims);
                         return next.call(req).await;

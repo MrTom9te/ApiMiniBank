@@ -1,16 +1,16 @@
 use actix_web::{
-    HttpResponse, Responder, post,
+    HttpResponse, HttpServer, Responder, post,
     web::{self, Data, Json, ServiceConfig},
 };
 use sqlx::PgPool;
 
 use crate::{
-    database::UserRepository,
+    database::{RefreshTokenRepository, UserRepository},
     models::{
         CreateUser, LoginUserRequest, LoginUserResponse, User, api_response::ApiResponse,
         error::UserError,
     },
-    utils::{create_jwt, verify_password},
+    utils::{create_token, create_token_refresh, verify_password},
     validators::LoginValidator,
 };
 
@@ -26,7 +26,7 @@ async fn create_user(pool: Data<PgPool>, Json(create_user): Json<CreateUser>) ->
         }
     };
     // o PgPool já é Arc internamente → pode clonar sem custo
-    match UserRepository::insert(&pool, user).await {
+    match UserRepository::insert(&pool, &user).await {
         Ok(uuid) => {
             HttpResponse::Created().json(ApiResponse::sucess(uuid, "Usuario criado com sucesso"))
         }
@@ -72,7 +72,7 @@ pub async fn login_user(pool: Data<PgPool>, login: Json<LoginUserRequest>) -> im
         ));
     }
 
-    let token = match create_jwt(&user) {
+    let token = match create_token(&user) {
         Ok(token) => token,
         Err(_) => {
             return HttpResponse::InternalServerError().json(ApiResponse::<()>::error(
@@ -82,8 +82,19 @@ pub async fn login_user(pool: Data<PgPool>, login: Json<LoginUserRequest>) -> im
         }
     };
 
+    let (refresh_token, expires_at) = create_token_refresh();
+
+    if let Err(_) = RefreshTokenRepository::insert(&pool, user.id, &refresh_token, expires_at).await
+    {
+        return HttpResponse::InternalServerError().json(ApiResponse::<()>::error(
+            "Erro a criar token",
+            "Error ao criar token refresh",
+        ));
+    }
+
     HttpResponse::Ok().json(ApiResponse::sucess(
         LoginUserResponse {
+            refresh_token,
             token,
             user_id: user.id,
             email: user.email,

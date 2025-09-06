@@ -1,5 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
-use sqlx::{FromRow, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::models::{User, error::UserError};
@@ -9,56 +8,55 @@ pub struct UserRepository;
 impl UserRepository {
     /// Insere um novo usuário no banco de dados
     /// Retorna o ID do usuário criado ou erro se email já existir
-    pub async fn insert(pool: &PgPool, user: User) -> Result<Uuid, UserError> {
-        // Verifica se email já existe
-        let email_exists: bool =
-            sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
-                .bind(&user.email)
-                .fetch_one(pool)
-                .await?;
+    pub async fn insert(pool: &PgPool, user: &User) -> Result<Uuid, UserError> {
+        let query = r#"
+              INSERT INTO users (id, email, name, password_hash, is_active, created_at, updated_at)
+              VALUES ($1, $2, $3, $4, $5, $6, $7)
+              ON CONFLICT (email) DO NOTHING
+              RETURNING id
+          "#;
+        let result: Option<Uuid> = sqlx::query_scalar(query)
+            .bind(&user.id)
+            .bind(&user.email)
+            .bind(&user.name)
+            .bind(&user.password_hash)
+            .bind(user.is_active)
+            .bind(&user.created_at)
+            .bind(&user.updated_at)
+            .fetch_optional(pool)
+            .await?;
 
-        if email_exists {
-            return Err(UserError::EmailAlreadyExists);
+        match result {
+            Some(id) => Ok(id),
+            None => Err(UserError::EmailAlreadyExists),
         }
-
-        // Insere o usuário
-        sqlx::query(
-            "INSERT INTO users (id, email, name, password_hash, is_active, created_at, updated_at)
-             VALUES ($1, $2, $3, $4, $5, $6, $7)",
-        )
-        .bind(&user.id)
-        .bind(&user.email)
-        .bind(&user.name)
-        .bind(&user.password_hash)
-        .bind(user.is_active)
-        .bind(&user.created_at)
-        .bind(&user.updated_at)
-        .execute(pool)
-        .await?;
-
-        Ok(user.id)
     }
 
     /// Busca usuário por ID
     pub async fn find_by_id(pool: &PgPool, user_id: Uuid) -> Result<Option<User>, sqlx::Error> {
-        sqlx::query_as::<_, User>(
-            "SELECT id, email, name, password_hash, is_active, created_at, updated_at
-             FROM users WHERE id = $1 AND is_active = true",
-        )
-        .bind(user_id)
-        .fetch_optional(pool)
-        .await
+        let query = r#"
+                    SELECT id, email, name, password_hash, is_active, created_at, updated_at
+                    FROM users
+                    WHERE id = $1 AND is_active = true
+                "#;
+        sqlx::query_as::<_, User>(query)
+            .bind(user_id)
+            .fetch_optional(pool)
+            .await
     }
 
     /// Busca usuário por email (útil para login)
     pub async fn find_by_email(pool: &PgPool, email: &str) -> Result<Option<User>, sqlx::Error> {
-        sqlx::query_as::<_, User>(
-            "SELECT id, email, name, password_hash, is_active, created_at, updated_at
-             FROM users WHERE email = $1",
-        )
-        .bind(email.to_lowercase())
-        .fetch_optional(pool)
-        .await
+        let query = r#"
+                    SELECT id, email, name, password_hash, is_active, created_at, updated_at
+                    FROM users
+                    WHERE LOWER(email) = LOWER($1)
+                "#;
+
+        sqlx::query_as::<_, User>(query)
+            .bind(email.to_lowercase())
+            .fetch_optional(pool)
+            .await
     }
 
     /// Lista usuários com paginação
@@ -67,64 +65,67 @@ impl UserRepository {
         limit: i32,
         offset: i64,
     ) -> Result<Vec<User>, sqlx::Error> {
-        let limit = if limit <= 0 { 10 } else { limit };
-        let offset = if offset < 0 { 0 } else { offset };
-
-        sqlx::query_as::<_, User>(
-            "SELECT id, email, name, password_hash, is_active, created_at, updated_at
-             FROM users
-             WHERE is_active = true
-             ORDER BY name
-             LIMIT $1 OFFSET $2",
-        )
-        .bind(limit)
-        .bind(offset)
-        .fetch_all(pool)
-        .await
+        let query = r#"
+                   SELECT id, email, name, password_hash, is_active, created_at, updated_at
+                   FROM users
+                   WHERE is_active = true
+                   ORDER BY name
+                   LIMIT $1 OFFSET $2
+               "#;
+        sqlx::query_as::<_, User>(query)
+            .bind(limit.max(1)) // se <= 0 vira 1
+            .bind(offset.max(0)) // se < 0 vira 0
+            .fetch_all(pool)
+            .await
     }
 
     /// Atualiza dados do usuário
     pub async fn update(pool: &PgPool, user: &User) -> Result<(), sqlx::Error> {
-        sqlx::query(
-            "UPDATE users
-             SET name = $1, email = $2, password_hash = $3, updated_at = $4
-             WHERE id = $5",
-        )
-        .bind(&user.name)
-        .bind(&user.email)
-        .bind(&user.password_hash)
-        .bind(&user.updated_at)
-        .bind(&user.id)
-        .execute(pool)
-        .await?;
+        let query = r#"
+                    UPDATE users
+                    SET name = $1, email = $2, password_hash = $3, is_active = $4, updated_at = $5
+                    WHERE id = $6
+                "#;
 
+        sqlx::query(query)
+            .bind(&user.name)
+            .bind(&user.email)
+            .bind(&user.password_hash)
+            .bind(&user.updated_at)
+            .bind(&user.id)
+            .execute(pool)
+            .await?;
         Ok(())
     }
 
     /// Soft delete (marca como inativo)
     pub async fn delete(pool: &PgPool, user_id: Uuid) -> Result<(), sqlx::Error> {
-        sqlx::query(
-            "UPDATE users
-             SET is_active = false, updated_at = NOW()
-             WHERE id = $1",
-        )
-        .bind(&user_id)
-        .execute(pool)
-        .await?;
+        let query = r#"
+                    UPDATE users
+                    SET is_active = false, updated_at = NOW()
+                    WHERE id = $1
+                "#;
+
+        sqlx::query(query).bind(&user_id).execute(pool).await?;
 
         Ok(())
     }
 
     /// Conta o total de usuários (para paginação)
     pub async fn count_active(pool: &PgPool) -> Result<i64, sqlx::Error> {
-        sqlx::query_scalar("SELECT COUNT(*) FROM users WHERE is_active = true")
-            .fetch_one(pool)
-            .await
+        let query = r#"SELECT COUNT(*) FROM users WHERE is_active = true"#;
+        sqlx::query_scalar(query).fetch_one(pool).await
     }
 
     /// Verifica se um usuário existe e está ativo
     pub async fn exists_and_active(pool: &PgPool, user_id: Uuid) -> Result<bool, sqlx::Error> {
-        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1 AND is_active = true)")
+        let query = r#"
+                   SELECT EXISTS(
+                       SELECT 1 FROM users WHERE id = $1 AND is_active = true
+                   )
+               "#;
+
+        sqlx::query_scalar(query)
             .bind(user_id)
             .fetch_one(pool)
             .await
