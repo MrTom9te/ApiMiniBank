@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use uuid::Uuid;
@@ -22,6 +22,7 @@ pub struct LoginUserRequest {
 ///Resposta de login
 #[derive(Debug, Serialize)]
 pub struct LoginUserResponse {
+    pub refresh_token: String,
     pub token: String,
     pub user_id: Uuid,
     pub email: String,
