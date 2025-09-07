@@ -8,6 +8,7 @@ actix-files = "0.6.7"
 actix-web = "4.11.0"
 bcrypt = "0.17.1"
 chrono = { version = "0.4.41", features = ["serde"] }
+futures-util = "0.3.31"
 jsonwebtoken = "9.3.1"
 regex = "1.11.2"
 rust_decimal = "1.37.2"

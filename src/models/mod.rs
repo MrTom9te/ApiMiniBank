@@ -1,8 +1,8 @@
 mod account;
 pub mod api_response;
-mod auth_response;
 pub mod claims;
 pub mod pagination;
+mod refresh_token;
 pub mod transaction;
 mod user;
 

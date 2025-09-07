@@ -293,6 +293,7 @@ dependencies = [
  "actix-web",
  "bcrypt",
  "chrono",
+ "futures-util",
  "jsonwebtoken",
  "regex",
  "rust_decimal",

@@ -1,12 +1,13 @@
 use crate::JWT_SECRET;
 use crate::models::{User, claims::Claims};
 use bcrypt::{BcryptResult, DEFAULT_COST, hash, verify};
-use chrono::Utc;
+use chrono::{Duration, Utc};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, TokenData, Validation, encode};
+use uuid::Uuid;
 
-pub fn create_jwt(user: &User) -> Result<String, jsonwebtoken::errors::Error> {
+pub fn create_token(user: &User) -> Result<String, jsonwebtoken::errors::Error> {
     let now = Utc::now();
-    let exp = now + chrono::Duration::hours(1);
+    let exp = now + chrono::Duration::minutes(5);
     let claims = Claims::new(
         user.id.clone().into(),
         exp.timestamp() as usize,
@@ -23,7 +24,13 @@ pub fn create_jwt(user: &User) -> Result<String, jsonwebtoken::errors::Error> {
     )
 }
 
-pub fn verify_jwt(token: &str) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
+pub fn create_token_refresh() -> (String, i64) {
+    let refresh_token = Uuid::new_v4().to_string();
+    let expires_at = Utc::now() + Duration::days(2);
+    (refresh_token, expires_at.timestamp())
+}
+
+pub fn verify_token(token: &str) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
     let secret = get_jwt_secret(); // Pega o secret da variável global
 
     jsonwebtoken::decode(
