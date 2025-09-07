@@ -1,6 +1,6 @@
 use std::sync::OnceLock;
 
-use crate::handlers::auth_routes;
+use crate::handlers::{auth_routes, user_routes};
 use actix_web::web::{self, ServiceConfig};
 
 mod database;
@@ -13,5 +13,11 @@ pub mod validators;
 pub static JWT_SECRET: OnceLock<String> = OnceLock::new();
 
 pub fn app(cgf: &mut ServiceConfig) {
-    cgf.service(web::scope("/api").service(web::scope("/v1").configure(auth_routes)));
+    cgf.service(
+        web::scope("/api").service(
+            web::scope("/v1")
+                .configure(auth_routes)
+                .configure(user_routes), //protegido pelo middleware
+        ),
+    );
 }
