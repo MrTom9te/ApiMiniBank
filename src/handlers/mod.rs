@@ -1,2 +1,4 @@
+mod authentication;
 mod users;
-pub use users::auth_routes;
+pub use authentication::auth_routes;
+pub use users::user_routes;
